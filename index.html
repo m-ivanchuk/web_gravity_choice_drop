@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Randomizer Level - Gravity Drop</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <link href="styles.css" rel="stylesheet" />
+</head>
+
+<body class="bg-background text-on-background h-[100dvh] flex flex-col overflow-hidden arcade-grid relative">
+
+    <!-- Top Navigation -->
+    <header
+        class="bg-[#0c0e17]/80 backdrop-blur-xl fixed full-width top-0 w-full z-50 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+        <div class="flex justify-between items-center px-6 py-4 w-full">
+            <div
+                class="text-2xl font-black italic text-[#BFFF00] drop-shadow-[0_0_8px_rgba(191,255,0,0.6)] font-['Space_Grotesk'] tracking-tighter uppercase">
+                Arena
+            </div>
+            <div class="flex items-center gap-4">
+                <button id="btn-back-winner"
+                    class="hidden px-4 py-2 bg-primary/10 backdrop-blur-md rounded-xl border border-primary/20 shadow-md text-primary hover:bg-primary/20 transition-colors flex items-center gap-2 group">
+                    <span class="material-symbols-outlined text-lg group-hover:-translate-x-1 transition-transform">arrow_back</span>
+                    <span class="font-headline text-xs font-bold tracking-widest uppercase">Back to Results</span>
+                </button>
+                <button id="btn-toggle-live-stats"
+                    class="hidden px-4 py-2 bg-surface-bright/40 backdrop-blur-md rounded-xl border border-white/5 shadow-md text-on-surface-variant hover:text-white transition-colors flex items-center gap-2 group">
+                    <span class="material-symbols-outlined text-lg group-hover:scale-110 transition-transform">leaderboard</span>
+                    <span class="font-headline text-xs font-bold tracking-widest uppercase">Live Stats</span>
+                </button>
+            </div>
+        </div>
+        <div class="bg-gradient-to-b from-[#171924] to-transparent h-1 w-full"></div>
+    </header>
+
+    <!-- VIEW: SETUP -->
+    <main id="view-setup"
+        class="view active flex-grow flex-col items-center justify-start px-6 pt-24 pb-32 max-w-4xl mx-auto w-full relative z-10 overflow-y-auto overflow-x-hidden min-h-0">
+        <div
+            class="absolute top-20 -left-20 w-64 h-64 bg-primary-container/5 rounded-full blur-[100px] pointer-events-none">
+        </div>
+        <div
+            class="absolute bottom-40 -right-20 w-80 h-80 bg-secondary/5 rounded-full blur-[100px] pointer-events-none">
+        </div>
+
+        <div class="relative mb-12 text-center">
+            <h1
+                class="headline-font text-5xl md:text-7xl font-black text-on-surface tracking-tighter uppercase leading-none arcade-glow">
+                Enter Your <br /><span class="text-primary-container">Choices</span>
+            </h1>
+        </div>
+
+        <div class="w-full grid grid-cols-1 md:grid-cols-12 gap-4">
+            <div
+                class="md:col-span-4 bg-surface-container rounded-xl p-6 flex flex-col justify-between border-l-4 border-tertiary/40">
+                <div>
+                    <h3 class="headline-font text-xl font-bold text-tertiary mb-2 uppercase tracking-wide">The Arena
+                    </h3>
+                    <p class="text-on-surface-variant text-sm leading-relaxed">
+                        Input the contenders for tonight's race.
+                    </p>
+                </div>
+            </div>
+
+            <div class="md:col-span-8 space-y-4" id="choices-list">
+                <!-- Choice inputs rendered by JS -->
+            </div>
+        </div>
+
+        <div class="mt-8 md:ml-auto md:w-2/3">
+            <button id="add-choice-btn"
+                class="w-full group flex items-center justify-center gap-3 py-4 border-2 border-dashed border-outline-variant rounded-xl text-on-surface-variant hover:border-primary-container/50 hover:text-primary-container transition-all active:scale-[0.98]">
+                <span class="material-symbols-outlined transition-transform group-hover:rotate-90"
+                    data-icon="add">add</span>
+                <span class="font-bold uppercase tracking-widest text-xs">Add Another Choice</span>
+            </button>
+        </div>
+
+        <div class="mt-16 w-full max-w-md mx-auto">
+            <button id="start-race-btn"
+                class="w-full group relative overflow-hidden bg-gradient-to-br from-primary-container to-primary py-5 rounded-xl shadow-[0_10px_40px_rgba(191,255,0,0.3)] hover:shadow-[0_15px_50px_rgba(191,255,0,0.5)] active:translate-y-1 transition-all duration-300">
+                <div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div class="flex items-center justify-center gap-4 relative z-10">
+                    <span
+                        class="headline-font text-xl font-black italic tracking-tighter text-on-primary-container uppercase">Start
+                        the race</span>
+                    <span class="material-symbols-outlined text-on-primary-container" data-weight="fill"
+                        style="font-variation-settings: 'FILL' 1;">bolt</span>
+                </div>
+            </button>
+            <p id="setup-error"
+                class="text-center text-[10px] text-error uppercase tracking-[0.2em] mt-4 opacity-0 transition-opacity">
+                Need at least 2 choices</p>
+        </div>
+    </main>
+
+    <main id="view-race"
+        class="view flex-grow flex-col items-center justify-center pt-24 pb-4 px-4 md:px-8 w-full z-10 overflow-hidden relative">
+        <div
+            class="relative w-full h-full max-w-5xl bg-surface-container-low rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/5 flex justify-center">
+
+            <div id="live-stats-overlay" class="absolute top-6 right-6 w-64 max-h-[60vh] bg-surface-container-highest/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-30 flex flex-col hidden transition-opacity duration-300">
+                <div class="flex justify-between items-center p-4 border-b border-white/5 shrink-0">
+                    <h3 class="headline-font text-sm font-bold text-on-surface uppercase tracking-widest">Live Race</h3>
+                    <button id="btn-close-live-stats" class="text-on-surface-variant hover:text-error transition-colors flex items-center justify-center">
+                        <span class="material-symbols-outlined text-sm">close</span>
+                    </button>
+                </div>
+                <div id="live-stats-list" class="p-3 space-y-3 overflow-y-auto hidden-scrollbar flex-grow">
+                    <!-- live stats injected here -->
+                </div>
+            </div>
+
+            <!-- Target Canvas -->
+            <canvas id="race-canvas" class="w-full h-full block"></canvas>
+
+        </div>
+    </main>
+
+    <!-- VIEW: WINNER -->
+    <main id="view-winner"
+        class="view flex-grow flex-col items-center justify-center p-4 pt-20 pb-4 z-20 overflow-y-auto min-h-0">
+
+        <div class="absolute inset-0 z-0 overflow-hidden bg-surface pointer-events-none opacity-90"></div>
+
+        <div class="relative z-10 w-full max-w-4xl mx-auto flex flex-col items-center">
+
+            <div class="relative mb-4 text-center">
+                <h1
+                    class="headline-font text-4xl md:text-6xl font-black text-primary-container tracking-tighter uppercase glow-text leading-none italic">
+                    WE HAVE A<br />WINNER!
+                </h1>
+            </div>
+
+            <div class="group relative w-full max-w-md cursor-default">
+                <div
+                    class="absolute inset-0 bg-secondary/10 blur-3xl rounded-full opacity-50 group-hover:opacity-100 transition-opacity">
+                </div>
+                <div
+                    class="relative bg-surface-bright/60 backdrop-blur-2xl rounded-xl border-4 border-secondary p-6 neon-border flex flex-col items-center gap-2 overflow-hidden">
+                    <span class="font-body text-secondary text-xs md:text-sm font-bold tracking-[0.3em] uppercase">The Choice is clear</span>
+                    <h2 id="winner-name"
+                        class="headline-font text-5xl md:text-7xl font-black mb-2 text-on-surface text-center leading-tight drop-shadow-sm break-all">
+                        Winner
+                    </h2>
+                </div>
+            </div>
+
+            <div class="mt-8 flex flex-wrap justify-center gap-3 max-w-2xl px-4 w-full">
+                <button id="btn-race-again"
+                    class="w-full md:w-auto group relative px-8 py-3 bg-gradient-to-br from-primary to-primary-container rounded-xl headline-font text-on-primary-container font-black text-base uppercase tracking-tighter active:translate-y-1 transition-all duration-200 hover:shadow-[0_0_30px_rgba(191,255,0,0.4)]">
+                    Race Again
+                </button>
+                <div class="w-full flex gap-3 flex-wrap">
+                    <button id="btn-show-stats"
+                        class="flex-1 min-w-[140px] px-4 py-3 bg-surface-container-highest border border-white/5 text-on-surface rounded-xl headline-font font-bold text-xs uppercase tracking-wider hover:bg-surface-bright transition-all duration-300">
+                        Results Table
+                    </button>
+                    <button id="btn-view-state"
+                        class="flex-1 min-w-[140px] px-4 py-3 bg-surface-container-highest border border-white/5 text-on-surface rounded-xl headline-font font-bold text-xs uppercase tracking-wider hover:bg-surface-bright transition-all duration-300">
+                        View Arena
+                    </button>
+                </div>
+                <button id="btn-back-setup"
+                    class="w-full mt-1 px-4 py-3 bg-transparent border border-outline-variant text-on-surface-variant rounded-xl headline-font font-bold text-xs uppercase tracking-widest hover:border-primary hover:text-primary transition-all duration-300">
+                    Back to Setup
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- STATS MODAL -->
+    <dialog id="stats-modal"
+        class="bg-transparent backdrop:bg-surface/90 backdrop:backdrop-blur-sm m-auto w-[95%] max-w-xl p-0 overflow-visible outline-none rounded-3xl transform transition-all">
+        <div
+            class="bg-surface-container-highest rounded-3xl p-6 md:p-8 border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.7)] relative w-full h-auto max-h-[85vh] flex flex-col">
+            <button id="btn-close-stats"
+                class="absolute top-6 right-6 text-on-surface-variant hover:text-error active:scale-90 transition-all z-10 w-8 h-8 flex items-center justify-center bg-surface rounded-full shadow-md">
+                <span class="material-symbols-outlined text-lg">close</span>
+            </button>
+            <h2 class="headline-font text-3xl font-black text-on-surface uppercase mb-6 drop-shadow-md shrink-0">Race
+                Results</h2>
+            <div id="final-stats-list"
+                class="space-y-4 overflow-y-auto overflow-x-hidden hidden-scrollbar pr-2 pb-4 flex-grow relative">
+                <!-- Stats injected here -->
+            </div>
+        </div>
+    </dialog>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
