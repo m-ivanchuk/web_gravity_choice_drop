@@ -7,22 +7,26 @@
 }
 
 body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    background-color: #0c0e17;
+    font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+    background-color: #faf7f2;
+    color: #2f2d29;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Dot grid background texture */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(rgba(47, 45, 41, 0.05) 1.5px, transparent 1.5px);
+    background-size: 24px 24px;
+    pointer-events: none;
+    z-index: 0;
 }
 
 .headline-font {
-    font-family: 'Space Grotesk', sans-serif;
-}
-
-.arcade-glow {
-    text-shadow: 0 0 12px rgba(191, 255, 0, 0.4);
-}
-
-.arcade-grid {
-    background-image: linear-gradient(rgba(191, 255, 0, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(191, 255, 0, 0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
+    font-family: 'Fredoka', sans-serif;
 }
 
 .view {
@@ -33,10 +37,39 @@ body {
     display: flex;
 }
 
-.glow-text {
-    text-shadow: 0 0 20px rgba(191, 255, 0, 0.7), 0 0 40px rgba(191, 255, 0, 0.4);
+/* Pop flat 2D shadows (Neo-Brutalism style) */
+.shadow-flat {
+    box-shadow: 4px 4px 0px #2f2d29;
 }
 
-.neon-border {
-    box-shadow: 0 0 15px rgba(0, 207, 252, 0.5), inset 0 0 10px rgba(0, 207, 252, 0.3);
+.shadow-flat-hover {
+    box-shadow: 6px 6px 0px #2f2d29;
 }
+
+.shadow-flat-active {
+    box-shadow: 1px 1px 0px #2f2d29;
+}
+
+/* Cute Floating animations */
+@keyframes floatSlow {
+    0% { transform: translateY(0) rotate(0deg); }
+    100% { transform: translateY(-8px) rotate(2deg); }
+}
+
+@keyframes cloudBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+
+.kawaii-bounce {
+    animation: cloudBounce 4s ease-in-out infinite;
+}
+
+.kawaii-float {
+    animation: floatSlow 6s ease-in-out infinite alternate;
+}
+
+.transition-kawaii {
+    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+

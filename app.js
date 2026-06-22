@@ -1,4 +1,4 @@
-const COLORS = ["#00cffc", "#ff8342", "#ff7351", "#bdfc00", "#ff9560", "#37d4ff", "#b1ed00", "#eaffb8", "#80deff"];
+const COLORS = ["#ffdbe0", "#cbeee4", "#cbe6f6", "#fef0be", "#ffc5a1", "#d6cbf6", "#f6cbd6", "#cbf6db", "#f6ecb8"];
 
 // --- DOM ELEMENTS ---
 const viewSetup = document.getElementById('view-setup');
@@ -56,17 +56,16 @@ let choiceCounter = 1;
 
 function createChoiceRow(initialValue = "") {
     const row = document.createElement('div');
-    row.className = "bg-surface-container-highest rounded-xl p-1 transition-all focus-within:ring-2 focus-within:ring-primary-container/30 choice-row relative group";
+    row.className = "bg-[#ffffff] rounded-2xl p-1 border-2.5 border-[#2f2d29] shadow-[3px_3px_0px_#2f2d29] focus-within:shadow-[5px_5px_0px_#2f2d29] focus-within:translate-x-[-2px] focus-within:translate-y-[-2px] transition-kawaii choice-row relative group";
     const n = choiceCounter++;
 
     row.innerHTML = `
         <div class="relative flex items-center justify-between">
             <div class="relative flex-grow">
-                <label class="absolute left-4 top-3 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Contender ${String(n).padStart(2, '0')}</label>
-                <input class="w-full bg-transparent border-none pt-8 pb-3 px-4 text-on-surface focus:ring-0 placeholder:text-on-surface/20 headline-font text-lg font-medium choice-input outline-none" placeholder="Enter option..." type="text" value="${initialValue}" />
-                <div class="h-[3px] w-full bg-outline-variant group-focus-within:bg-secondary transition-colors"></div>
+                <label class="absolute left-4 top-3 text-[10px] font-extrabold uppercase tracking-widest text-[#615e58]">Contender ${String(n).padStart(2, '0')}</label>
+                <input class="w-full bg-transparent border-none pt-8 pb-3 px-4 text-[#2f2d29] focus:ring-0 placeholder:text-[#2f2d29]/30 headline-font text-lg font-bold choice-input outline-none" placeholder="Enter option..." type="text" value="${initialValue}" />
             </div>
-            <button class="remove-btn text-on-surface-variant hover:text-error opacity-50 hover:opacity-100 transition-opacity p-4 mx-1">
+            <button class="remove-btn text-[#2f2d29] hover:text-[#ff8383] transition-colors p-4 mx-1">
                 <span class="material-symbols-outlined transition-transform active:scale-90">delete</span>
             </button>
         </div>
@@ -153,36 +152,61 @@ class Floor {
 
     draw(ctx, canvasWidth) {
         if (this.isFinishLine) {
-            ctx.fillStyle = "rgba(189,252,0,0.8)";
-            ctx.shadowColor = "#bdfc00";
-            ctx.shadowBlur = 15;
-            ctx.fillRect(0, this.y, canvasWidth, Math.max(16, FLOOR_THICKNESS * 2));
-            ctx.shadowBlur = 0; // reset
+            // Draw a cute finish zone using mint and checker pattern
+            ctx.fillStyle = "#cbeee4"; // Pastel Mint background
+            ctx.fillRect(0, this.y, canvasWidth, Math.max(20, FLOOR_THICKNESS * 3));
+            
+            // Draw top border
+            ctx.fillStyle = "#2f2d29";
+            ctx.fillRect(0, this.y, canvasWidth, 2.5);
+            
+            // Draw bottom border
+            ctx.fillRect(0, this.y + Math.max(20, FLOOR_THICKNESS * 3) - 2.5, canvasWidth, 2.5);
 
-            // "Finish Zone" text
-            ctx.fillStyle = "#171924";
-            ctx.font = "900 12px 'Space Grotesk'";
+            // Draw text
+            ctx.fillStyle = "#2f2d29";
+            ctx.font = "bold 12px 'Fredoka'";
             ctx.textAlign = "center";
-            ctx.fillText("FINISH ZONE", canvasWidth / 2, this.y + 14);
+            ctx.textBaseline = "middle";
+            ctx.fillText("🏁 FINISH ZONE 🏁", canvasWidth / 2, this.y + Math.max(20, FLOOR_THICKNESS * 3) / 2 + 1);
             return;
         }
 
-        ctx.fillStyle = "rgba(189,252,0,0.3)"; // base floor color
-        ctx.shadowColor = "#bdfc00";
-        ctx.shadowBlur = 6;
-
+        // Draw regular floors as solid boards with dark borders
+        ctx.fillStyle = "#fef0be"; // Pastel Yellow base
+        let thickness = Math.max(8, FLOOR_THICKNESS); // Make them slightly thicker for a solid look
+        
         let startX = 0;
-        // Sort holes by x to draw segments
         let sortedHoles = [...this.holes].sort((a, b) => a.x - b.x);
 
         for (let h of sortedHoles) {
-            ctx.fillRect(startX, this.y, h.x - startX, FLOOR_THICKNESS);
+            let len = h.x - startX;
+            if (len > 0) {
+                // Fill
+                ctx.fillStyle = "#fef0be";
+                ctx.fillRect(startX, this.y, len, thickness);
+                // Stroke
+                ctx.fillStyle = "#2f2d29";
+                ctx.fillRect(startX, this.y, len, 2.5); // Top border
+                ctx.fillRect(startX, this.y + thickness - 2.5, len, 2.5); // Bottom border
+                if (startX > 0) {
+                    ctx.fillRect(startX, this.y, 2.5, thickness); // Left edge
+                }
+                ctx.fillRect(h.x - 2.5, this.y, 2.5, thickness); // Right edge (before hole)
+            }
             startX = h.x + h.width;
         }
-        // Fill remaining
-        ctx.fillRect(startX, this.y, canvasWidth - startX, FLOOR_THICKNESS);
-
-        ctx.shadowBlur = 0;
+        
+        // Fill remaining segment
+        let remainingLen = canvasWidth - startX;
+        if (remainingLen > 0) {
+            ctx.fillStyle = "#fef0be";
+            ctx.fillRect(startX, this.y, remainingLen, thickness);
+            ctx.fillStyle = "#2f2d29";
+            ctx.fillRect(startX, this.y, remainingLen, 2.5);
+            ctx.fillRect(startX, this.y + thickness - 2.5, remainingLen, 2.5);
+            ctx.fillRect(startX, this.y, 2.5, thickness); // Left edge of remaining segment
+        }
     }
 }
 
@@ -269,57 +293,62 @@ class Dot {
         if (this.history.length < 2) return;
 
         let isWinnerTrace = (winnerDot === this);
-        let blinkPhase = isWinnerTrace ? (Math.sin(timestamp / 100) + 1) / 2 : 0;
 
         ctx.beginPath();
         if (isWinnerTrace) {
             ctx.setLineDash([]);
+            ctx.lineWidth = 3.5;
+            ctx.strokeStyle = "#ffffff"; // Light solid outline for winner trace (visible on dark canvas)
         } else {
-            ctx.setLineDash([2, 5]);
+            ctx.setLineDash([3, 5]);
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = this.option.color; // Color dashed outline for others
         }
 
         ctx.moveTo(this.history[0].x, this.history[0].y);
         for (let i = 1; i < this.history.length; i++) {
             ctx.lineTo(this.history[i].x, this.history[i].y);
         }
-
-        if (isWinnerTrace) {
-            ctx.strokeStyle = this.option.color;
-            ctx.globalAlpha = 0.5 + (0.5 * blinkPhase);
-            ctx.lineWidth = 2 + (4 * blinkPhase);
-            ctx.shadowColor = this.option.color;
-            ctx.shadowBlur = 15 * blinkPhase;
-        } else {
-            ctx.strokeStyle = this.option.color + "80";
-            ctx.lineWidth = 1.5;
-            ctx.globalAlpha = 1.0;
-            ctx.shadowBlur = 0;
-        }
-
         ctx.stroke();
         ctx.closePath();
+
+        // If winner trace, draw an inner color line for a nice sticker stripe effect
+        if (isWinnerTrace) {
+            ctx.beginPath();
+            ctx.setLineDash([]);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = this.option.color;
+            ctx.moveTo(this.history[0].x, this.history[0].y);
+            for (let i = 1; i < this.history.length; i++) {
+                ctx.lineTo(this.history[i].x, this.history[i].y);
+            }
+            ctx.stroke();
+            ctx.closePath();
+        }
+
         ctx.setLineDash([]);
-        ctx.shadowBlur = 0;
-        ctx.globalAlpha = 1.0;
     }
 
     draw(ctx) {
+        // Draw the dot body
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         ctx.fillStyle = this.option.color;
-        ctx.shadowColor = this.option.color;
-        ctx.shadowBlur = 10;
         ctx.fill();
+        
+        // Draw the dark border (Neo-Brutalism sticker look)
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = "#2f2d29";
+        ctx.stroke();
         ctx.closePath();
-        ctx.shadowBlur = 0;
 
-        // Draw small initial inside
-        ctx.fillStyle = "#000";
-        ctx.font = "bold 10px 'Plus Jakarta Sans'";
+        // Draw small initial inside using Fredoka font
+        ctx.fillStyle = "#2f2d29";
+        ctx.font = "bold 9px 'Fredoka'";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         let initial = this.option.name.substring(0, 1).toUpperCase();
-        ctx.fillText(initial, this.x, this.y + 1);
+        ctx.fillText(initial, this.x, this.y + 0.5);
     }
 }
 
@@ -455,18 +484,17 @@ function renderLiveStats() {
         pct = Math.min(100, Math.max(0, pct));
 
         const card = document.createElement('div');
-        card.className = "bg-surface p-2 rounded-xl border-l-[3px] relative overflow-hidden transition-all duration-300";
-        card.style.borderColor = d.option.color;
+        card.className = "bg-[#ffffff] p-2 rounded-xl border-2 border-[#2f2d29] shadow-[2px_2px_0px_#2f2d29] relative overflow-hidden transition-all duration-300";
 
         card.innerHTML = `
             <div class="flex justify-between items-center mb-1.5">
-                <span class="headline-font font-bold text-[10px] tracking-tight truncate text-on-surface uppercase w-full">
-                    <span style="color: ${d.option.color}" class="mr-1">${index + 1}.</span> ${d.option.name}
+                <span class="headline-font font-bold text-xs text-[#2f2d29] uppercase w-full truncate">
+                    <span style="color: ${d.option.color}; -webkit-text-stroke: 0.5px #2f2d29;" class="mr-1 font-black">${index + 1}.</span> ${d.option.name}
                 </span>
-                <span class="text-[8px] font-black px-1.5 py-0.5 rounded-[4px] shrink-0" style="color: ${d.option.color}; background-color: ${d.option.color}20">${pct}%</span>
+                <span class="text-[9px] font-black px-1.5 py-0.5 rounded-lg border border-[#2f2d29] shadow-[1px_1px_0px_#2f2d29] shrink-0" style="background-color: ${d.option.color}">${pct}%</span>
             </div>
-            <div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
-                <div class="h-full rounded-full transition-all duration-300" style="width: ${pct}%; background-color: ${d.option.color};"></div>
+            <div class="w-full bg-[#faf7f2] h-2.5 rounded-full border border-[#2f2d29] overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-300 border-r border-[#2f2d29]" style="width: ${pct}%; background-color: ${d.option.color};"></div>
             </div>
         `;
         liveStatsList.appendChild(card);
@@ -490,20 +518,19 @@ function renderFinalStats() {
         if (index === 0) positionText = "WINNER";
 
         const card = document.createElement('div');
-        card.className = "bg-surface-container-highest p-4 rounded-xl border-l-4 relative overflow-hidden flex items-center justify-between";
-        card.style.borderColor = d.option.color;
+        card.className = "bg-[#ffffff] p-4 rounded-2xl border-2.5 border-[#2f2d29] relative overflow-hidden flex items-center justify-between shadow-[3px_3px_0px_#2f2d29]";
         if (index === 0) {
-            card.style.boxShadow = `inset 4px 0 0 ${d.option.color}, 0 4px 15px ${d.option.color}40`;
+            card.className += " bg-pastel-yellow shadow-[4px_4px_0px_#2f2d29]";
         }
 
         card.innerHTML = `
             <div class="flex items-center gap-4 overflow-hidden max-w-[70%]">
-                <span class="text-xs font-black uppercase w-16 shrink-0" style="color: ${d.option.color}">${positionText}</span>
-                <span class="headline-font font-bold text-lg tracking-tight truncate text-on-surface">${d.option.name}</span>
+                <span class="text-xs font-black uppercase w-16 shrink-0 py-0.5 px-2 rounded-lg border border-[#2f2d29] text-center shadow-[1px_1px_0px_#2f2d29]" style="background-color: ${d.option.color}">${positionText}</span>
+                <span class="headline-font font-bold text-lg text-[#2f2d29] truncate">${d.option.name}</span>
             </div>
             <div class="text-right">
-                <span class="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest block">Floor ${d.floorIndex + 1}</span>
-                <span class="text-sm font-bold truncate uppercase block" style="color: ${d.option.color}">${pct}% Drop</span>
+                <span class="text-[9px] text-[#615e58] font-bold uppercase tracking-wider block">Floor ${d.floorIndex + 1}</span>
+                <span class="text-xs font-black truncate uppercase block mt-0.5" style="color: ${d.option.color}; -webkit-text-stroke: 0.3px #2f2d29;">${pct}% Drop</span>
             </div>
         `;
         finalStatsList.appendChild(card);
@@ -515,7 +542,7 @@ function renderFinalStats() {
 function declareWinner(winningOption) {
     winnerNameEl.textContent = winningOption.name;
     winnerNameEl.style.color = winningOption.color;
-    winnerNameEl.style.textShadow = `0 0 20px ${winningOption.color}b3, 0 0 40px ${winningOption.color}66`;
+    winnerNameEl.style.textShadow = `2px 2px 0px #2f2d29`;
 
     // Render final stats
     renderFinalStats();
