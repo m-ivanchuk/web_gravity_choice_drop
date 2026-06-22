@@ -172,40 +172,39 @@ class Floor {
             return;
         }
 
-        // Draw regular floors as solid boards with dark borders
-        ctx.fillStyle = "#fef0be"; // Pastel Yellow base
-        let thickness = Math.max(8, FLOOR_THICKNESS); // Make them slightly thicker for a solid look
-        
+        let thickness = Math.max(8, FLOOR_THICKNESS);
         let startX = 0;
         let sortedHoles = [...this.holes].sort((a, b) => a.x - b.x);
+
+        ctx.strokeStyle = "#2f2d29";
+        ctx.lineWidth = thickness;
+        ctx.lineCap = "round";
 
         for (let h of sortedHoles) {
             let len = h.x - startX;
             if (len > 0) {
-                // Fill
-                ctx.fillStyle = "#fef0be";
-                ctx.fillRect(startX, this.y, len, thickness);
-                // Stroke
-                ctx.fillStyle = "#2f2d29";
-                ctx.fillRect(startX, this.y, len, 2.5); // Top border
-                ctx.fillRect(startX, this.y + thickness - 2.5, len, 2.5); // Bottom border
-                if (startX > 0) {
-                    ctx.fillRect(startX, this.y, 2.5, thickness); // Left edge
+                let x1 = startX === 0 ? 0 : startX + thickness / 2;
+                let x2 = h.x - thickness / 2;
+                if (x2 > x1) {
+                    ctx.beginPath();
+                    ctx.moveTo(x1, this.y + thickness / 2);
+                    ctx.lineTo(x2, this.y + thickness / 2);
+                    ctx.stroke();
                 }
-                ctx.fillRect(h.x - 2.5, this.y, 2.5, thickness); // Right edge (before hole)
             }
             startX = h.x + h.width;
         }
         
-        // Fill remaining segment
         let remainingLen = canvasWidth - startX;
         if (remainingLen > 0) {
-            ctx.fillStyle = "#fef0be";
-            ctx.fillRect(startX, this.y, remainingLen, thickness);
-            ctx.fillStyle = "#2f2d29";
-            ctx.fillRect(startX, this.y, remainingLen, 2.5);
-            ctx.fillRect(startX, this.y + thickness - 2.5, remainingLen, 2.5);
-            ctx.fillRect(startX, this.y, 2.5, thickness); // Left edge of remaining segment
+            let x1 = startX === 0 ? 0 : startX + thickness / 2;
+            let x2 = canvasWidth;
+            if (x2 > x1) {
+                ctx.beginPath();
+                ctx.moveTo(x1, this.y + thickness / 2);
+                ctx.lineTo(x2, this.y + thickness / 2);
+                ctx.stroke();
+            }
         }
     }
 }
@@ -294,29 +293,46 @@ class Dot {
 
         let isWinnerTrace = (winnerDot === this);
 
-        ctx.beginPath();
         if (isWinnerTrace) {
-            ctx.setLineDash([]);
-            ctx.lineWidth = 3.5;
-            ctx.strokeStyle = "#ffffff"; // Light solid outline for winner trace (visible on dark canvas)
-        } else {
-            ctx.setLineDash([3, 5]);
-            ctx.lineWidth = 1.5;
-            ctx.strokeStyle = this.option.color; // Color dashed outline for others
-        }
-
-        ctx.moveTo(this.history[0].x, this.history[0].y);
-        for (let i = 1; i < this.history.length; i++) {
-            ctx.lineTo(this.history[i].x, this.history[i].y);
-        }
-        ctx.stroke();
-        ctx.closePath();
-
-        // If winner trace, draw an inner color line for a nice sticker stripe effect
-        if (isWinnerTrace) {
+            // Draw outer dark stroke
             ctx.beginPath();
             ctx.setLineDash([]);
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 4.5;
+            ctx.strokeStyle = "#2f2d29";
+            ctx.moveTo(this.history[0].x, this.history[0].y);
+            for (let i = 1; i < this.history.length; i++) {
+                ctx.lineTo(this.history[i].x, this.history[i].y);
+            }
+            ctx.stroke();
+            ctx.closePath();
+
+            // Draw inner color stroke
+            ctx.beginPath();
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = this.option.color;
+            ctx.moveTo(this.history[0].x, this.history[0].y);
+            for (let i = 1; i < this.history.length; i++) {
+                ctx.lineTo(this.history[i].x, this.history[i].y);
+            }
+            ctx.stroke();
+            ctx.closePath();
+        } else {
+            // Draw outer dark dashed line
+            ctx.beginPath();
+            ctx.setLineDash([3, 5]);
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = "#2f2d29";
+            ctx.moveTo(this.history[0].x, this.history[0].y);
+            for (let i = 1; i < this.history.length; i++) {
+                ctx.lineTo(this.history[i].x, this.history[i].y);
+            }
+            ctx.stroke();
+            ctx.closePath();
+
+            // Draw inner colored dashed line
+            ctx.beginPath();
+            ctx.setLineDash([3, 5]);
+            ctx.lineWidth = 1.0;
             ctx.strokeStyle = this.option.color;
             ctx.moveTo(this.history[0].x, this.history[0].y);
             for (let i = 1; i < this.history.length; i++) {
