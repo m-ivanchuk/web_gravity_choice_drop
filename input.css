@@ -82,6 +82,44 @@ body {
     animation: marquee 16s linear infinite;
 }
 
+/* Infinite continuous decorative marquee footer */
+.marquee-banner {
+    display: flex;
+    overflow: hidden;
+    user-select: none;
+    background-color: #1c1b1b;
+    border-top: 4px solid #1c1b1b;
+    color: #fcf9f8;
+    padding: 0.85rem 0;
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.9rem;
+    position: relative;
+    z-index: 40;
+    flex-shrink: 0;
+    pointer-events: none;
+}
+
+.marquee-content {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-around;
+    min-width: 100%;
+    animation: scroll-left-continuous 25s linear infinite;
+}
+
+.marquee-content span {
+    display: inline-block;
+    padding: 0 1rem;
+}
+
+@keyframes scroll-left-continuous {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}
+
 .transition-kawaii {
     transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }

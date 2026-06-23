@@ -41,9 +41,17 @@ let winnerDot = null;
 const NUM_FLOORS = 35;
 const FLOOR_THICKNESS = 6;
 const DOT_RADIUS = 7;
-const SPEED = 3.0;
-const GRAVITY = 6.0;
+const SPEED = 8.0;
+const GRAVITY = 16.0;
 const HOLE_WIDTH = 20;
+
+// Virtual coordinate space for device independent physics
+const VIRTUAL_WIDTH = 800;
+const VIRTUAL_HEIGHT = 1200;
+
+// Physics fixed-timestep variables
+let lastTime = 0;
+let accumulator = 0;
 
 // --- ANNOUNCER TICKER CODES ---
 const ANNOUNCER_PHRASES = [
@@ -71,36 +79,68 @@ const ANNOUNCER_PHRASES = [
 
 let commentatorInterval = null;
 
+function playNextTickerPhrase() {
+    const ticker = document.getElementById('commentator-ticker');
+    if (!ticker || raceFinished) return;
+
+    const phrase = ANNOUNCER_PHRASES[Math.floor(Math.random() * ANNOUNCER_PHRASES.length)];
+    ticker.textContent = phrase;
+    ticker.style.animationIterationCount = '1';
+
+    // Wait one frame to ensure layout is updated and offsetWidth is non-zero
+    requestAnimationFrame(() => {
+        const textWidth = ticker.offsetWidth || (ticker.textContent.length * 8);
+        const containerWidth = ticker.parentElement.offsetWidth || canvas.width || 500;
+        const speed = 180; // speed in pixels per second
+        const duration = (containerWidth + textWidth) / speed;
+
+        ticker.style.animationDuration = `${duration}s`;
+
+        // Restart CSS animation
+        ticker.classList.remove('animate-marquee');
+        void ticker.offsetWidth; // trigger reflow
+        ticker.classList.add('animate-marquee');
+    });
+}
+
+function handleTickerAnimationEnd() {
+    if (!raceFinished) {
+        playNextTickerPhrase();
+    }
+}
+
 function startCommentator() {
     const ticker = document.getElementById('commentator-ticker');
     if (!ticker) return;
 
+    // Set up the first phrase
     ticker.textContent = "THE RACE HAS STARTED! GET READY TO DROP! ⚡";
-    ticker.classList.remove('animate-marquee');
-    void ticker.offsetWidth; // Trigger reflow to restart CSS animation
-    ticker.classList.add('animate-marquee');
+    ticker.style.animationIterationCount = '1';
+    
+    // Wait one frame to ensure layout is updated and offsetWidth is non-zero
+    requestAnimationFrame(() => {
+        const textWidth = ticker.offsetWidth || (ticker.textContent.length * 8);
+        const containerWidth = ticker.parentElement.offsetWidth || canvas.width || 500;
+        const speed = 180;
+        const duration = (containerWidth + textWidth) / speed;
+        ticker.style.animationDuration = `${duration}s`;
 
-    if (commentatorInterval) clearInterval(commentatorInterval);
-
-    commentatorInterval = setInterval(() => {
-        if (raceFinished) {
-            clearInterval(commentatorInterval);
-            return;
-        }
-        const phrase = ANNOUNCER_PHRASES[Math.floor(Math.random() * ANNOUNCER_PHRASES.length)];
-        
         ticker.classList.remove('animate-marquee');
-        ticker.textContent = phrase;
-        void ticker.offsetWidth; // Trigger reflow
+        void ticker.offsetWidth;
         ticker.classList.add('animate-marquee');
-    }, 4500);
+    });
+
+    // Listen for animationend to trigger next phrase
+    ticker.removeEventListener('animationend', handleTickerAnimationEnd);
+    ticker.addEventListener('animationend', handleTickerAnimationEnd);
 }
 
 function stopCommentator(winnerName = "") {
-    if (commentatorInterval) clearInterval(commentatorInterval);
     const ticker = document.getElementById('commentator-ticker');
     if (ticker) {
+        ticker.removeEventListener('animationend', handleTickerAnimationEnd);
         ticker.classList.remove('animate-marquee');
+        ticker.style.animationDuration = '';
         ticker.textContent = winnerName ? `🏆 WE HAVE A WINNER: ${winnerName.toUpperCase()}! CELEBRATION TIME! 🎉` : "The race has finished!";
     }
 }
@@ -200,6 +240,7 @@ class Floor {
         this.y = y;
         this.isFinishLine = isFinishLine;
         this.holes = [];
+        this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
     }
 
     generateHoles(canvasWidth, numHoles = 2) {
@@ -228,10 +269,10 @@ class Floor {
             
             // Draw top border
             ctx.fillStyle = "#1c1b1b";
-            ctx.fillRect(0, this.y, canvasWidth, 2.5);
+            ctx.fillRect(0, this.y, canvasWidth, 3);
             
             // Draw bottom border
-            ctx.fillRect(0, this.y + Math.max(20, FLOOR_THICKNESS * 3) - 2.5, canvasWidth, 2.5);
+            ctx.fillRect(0, this.y + Math.max(20, FLOOR_THICKNESS * 3) - 3, canvasWidth, 3);
 
             // Draw text
             ctx.fillStyle = "#1c1b1b";
@@ -243,18 +284,33 @@ class Floor {
         }
 
         let thickness = Math.max(8, FLOOR_THICKNESS);
-        let startX = 0;
         let sortedHoles = [...this.holes].sort((a, b) => a.x - b.x);
 
-        ctx.strokeStyle = "#1c1b1b";
-        ctx.lineWidth = thickness;
-        ctx.lineCap = "round";
+        const drawPath = (width, strokeStyle) => {
+            ctx.strokeStyle = strokeStyle;
+            ctx.lineWidth = width;
+            ctx.lineCap = "round";
 
-        for (let h of sortedHoles) {
-            let len = h.x - startX;
-            if (len > 0) {
+            let startX = 0;
+            for (let h of sortedHoles) {
+                let len = h.x - startX;
+                if (len > 0) {
+                    let x1 = startX === 0 ? 0 : startX + thickness / 2;
+                    let x2 = h.x - thickness / 2;
+                    if (x2 > x1) {
+                        ctx.beginPath();
+                        ctx.moveTo(x1, this.y + thickness / 2);
+                        ctx.lineTo(x2, this.y + thickness / 2);
+                        ctx.stroke();
+                    }
+                }
+                startX = h.x + h.width;
+            }
+            
+            let remainingLen = canvasWidth - startX;
+            if (remainingLen > 0) {
                 let x1 = startX === 0 ? 0 : startX + thickness / 2;
-                let x2 = h.x - thickness / 2;
+                let x2 = canvasWidth;
                 if (x2 > x1) {
                     ctx.beginPath();
                     ctx.moveTo(x1, this.y + thickness / 2);
@@ -262,37 +318,26 @@ class Floor {
                     ctx.stroke();
                 }
             }
-            startX = h.x + h.width;
-        }
-        
-        let remainingLen = canvasWidth - startX;
-        if (remainingLen > 0) {
-            let x1 = startX === 0 ? 0 : startX + thickness / 2;
-            let x2 = canvasWidth;
-            if (x2 > x1) {
-                ctx.beginPath();
-                ctx.moveTo(x1, this.y + thickness / 2);
-                ctx.lineTo(x2, this.y + thickness / 2);
-                ctx.stroke();
-            }
-        }
+        };
+
+        // Draw bold black outline first
+        drawPath(thickness + 5, "#1c1b1b");
+        // Draw colored inner floor core
+        drawPath(thickness, this.color);
     }
 }
 
 class Dot {
-    constructor(option, canvasWidth, canvasHeight) {
+    constructor(option) {
         this.option = option;
         this.radius = DOT_RADIUS;
         // Start randomly on top floor
-        this.x = this.radius + 10 + Math.random() * (canvasWidth - this.radius * 2 - 20);
+        this.x = this.radius + 10 + Math.random() * (VIRTUAL_WIDTH - this.radius * 2 - 20);
         this.y = 0; // Will be set to floor 0
 
-        let scaleX = canvasWidth / 400;
-        let scaleY = canvasHeight / 600;
-
-        this.vx = (Math.random() > 0.5 ? 1 : -1) * (SPEED * scaleX * (0.6 + Math.random() * 0.2));
+        this.vx = (Math.random() > 0.5 ? 1 : -1) * (SPEED * (0.8 + Math.random() * 0.4));
         this.vy = 0;
-        this.gravity = GRAVITY * scaleY;
+        this.gravity = GRAVITY;
 
         this.floorIndex = 0;
         this.state = "running"; // running, falling
@@ -300,7 +345,7 @@ class Dot {
         this.history = [];
     }
 
-    update(canvasWidth) {
+    update() {
         if (this.state === "falling") {
             this.y += this.gravity;
 
@@ -336,8 +381,8 @@ class Dot {
             if (this.x - this.radius <= 0) {
                 this.x = this.radius;
                 this.vx *= -1;
-            } else if (this.x + this.radius >= canvasWidth) {
-                this.x = canvasWidth - this.radius;
+            } else if (this.x + this.radius >= VIRTUAL_WIDTH) {
+                this.x = VIRTUAL_WIDTH - this.radius;
                 this.vx *= -1;
             }
 
@@ -451,11 +496,8 @@ function startRace() {
     canvas.width = container.clientWidth;
     canvas.height = container.clientHeight;
 
-    const w = canvas.width;
-    const h = canvas.height;
-
-    // Generate floors
-    const floorSpacing = h / (NUM_FLOORS + 1);
+    // Generate floors inside virtual space
+    const floorSpacing = VIRTUAL_HEIGHT / (NUM_FLOORS + 1);
     for (let i = 0; i < NUM_FLOORS; i++) {
         let isFinish = (i === NUM_FLOORS - 1);
         let fy = floorSpacing * (i + 1);
@@ -465,7 +507,7 @@ function startRace() {
         // More holes in bottom floors to speed up ending, 
         // fewer holes in top so dots spread out first.
         let numHoles = isFinish ? 0 : Math.floor(2 + Math.random() * 3);
-        floor.generateHoles(w, numHoles);
+        floor.generateHoles(VIRTUAL_WIDTH, numHoles);
 
         floors.push(floor);
     }
@@ -473,7 +515,7 @@ function startRace() {
     // Initialize dots
     const topFloorY = floors[0].y;
     for (let opt of options) {
-        let dot = new Dot(opt, w, h);
+        let dot = new Dot(opt);
         dot.y = topFloorY - dot.radius; // sit on top floor
         dots.push(dot);
     }
@@ -486,6 +528,10 @@ function startRace() {
     btnBackWinner.classList.add('hidden');
 
     startCommentator();
+
+    // Reset fixed-timestep physics variables
+    lastTime = 0;
+    accumulator = 0;
 
     if (animFrame) cancelAnimationFrame(animFrame);
     animFrame = requestAnimationFrame(gameLoop);
@@ -524,18 +570,42 @@ function resolveDotCollisions() {
 let lastStatsUpdate = 0;
 
 function gameLoop(timestamp) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (!lastTime) lastTime = timestamp;
+    let dt = timestamp - lastTime;
+    lastTime = timestamp;
 
-    for (let floor of floors) {
-        floor.draw(ctx, canvas.width);
+    // Prevent spiral of death on tab focus loss
+    if (dt > 100) dt = 100;
+
+    accumulator += dt;
+    const TIME_STEP = 1000 / 60; // 60 FPS update rate
+
+    while (accumulator >= TIME_STEP) {
+        if (!raceFinished) {
+            // Logic updates in virtual coordinates
+            for (let dot of dots) {
+                dot.update();
+            }
+            resolveDotCollisions();
+        }
+        accumulator -= TIME_STEP;
     }
 
-    if (!raceFinished) {
-        // Logic updates
-        for (let dot of dots) {
-            dot.update(canvas.width);
-        }
-        resolveDotCollisions();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Compute uniform scale and translation to center the virtual arena inside the responsive canvas
+    const scaleX = canvas.width / VIRTUAL_WIDTH;
+    const scaleY = canvas.height / VIRTUAL_HEIGHT;
+    const scale = Math.min(scaleX, scaleY);
+    const offsetX = (canvas.width - VIRTUAL_WIDTH * scale) / 2;
+    const offsetY = (canvas.height - VIRTUAL_HEIGHT * scale) / 2;
+
+    ctx.save();
+    ctx.translate(offsetX, offsetY);
+    ctx.scale(scale, scale);
+
+    for (let floor of floors) {
+        floor.draw(ctx, VIRTUAL_WIDTH);
     }
 
     // Render traces
@@ -547,6 +617,8 @@ function gameLoop(timestamp) {
     for (let dot of dots) {
         dot.draw(ctx);
     }
+
+    ctx.restore();
 
     // Throttled Live Stats update over the canvas
     if (!liveStatsOverlay.classList.contains('hidden') && !raceFinished) {
@@ -562,7 +634,7 @@ function gameLoop(timestamp) {
 function renderLiveStats() {
     let sortedDots = [...dots].sort((a, b) => b.y - a.y);
     liveStatsList.innerHTML = '';
-    let maxDropY = canvas.height;
+    let maxDropY = VIRTUAL_HEIGHT;
     if (floors.length > 0) {
         maxDropY = floors[floors.length - 1].y - DOT_RADIUS;
     }
@@ -593,7 +665,7 @@ function renderFinalStats() {
     let sortedDots = [...dots].sort((a, b) => b.y - a.y);
 
     finalStatsList.innerHTML = '';
-    let maxDropY = canvas.height;
+    let maxDropY = VIRTUAL_HEIGHT;
     if (floors.length > 0) {
         maxDropY = floors[floors.length - 1].y - DOT_RADIUS;
     }
