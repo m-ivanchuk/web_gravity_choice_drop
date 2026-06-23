@@ -1,4 +1,4 @@
-const COLORS = ["#ffdbe0", "#cbeee4", "#cbe6f6", "#fef0be", "#ffc5a1", "#d6cbf6", "#f6cbd6", "#cbf6db", "#f6ecb8"];
+const COLORS = ["#ffd7f0", "#e9ddff", "#7df4ff", "#ffdbe0", "#cbeee4", "#cbe6f6", "#fef0be", "#ffc5a1", "#d6cbf6"];
 
 // --- DOM ELEMENTS ---
 const viewSetup = document.getElementById('view-setup');
@@ -45,6 +45,66 @@ const SPEED = 3.0;
 const GRAVITY = 6.0;
 const HOLE_WIDTH = 20;
 
+// --- ANNOUNCER TICKER CODES ---
+const ANNOUNCER_PHRASES = [
+    "OH MY GOD! LOOK AT THEM GO! 💥",
+    "TAKO KARATE executes a perfect gravity roll! 🐙",
+    "Is that... a speed boost?! No, it's just gravity! 🚀",
+    "UNBELIEVABLE! They are clashing on the platforms! ⚔️",
+    "KA-POW! A massive collision redirects the leader! 💥",
+    "Will they make it through the next gap? The tension is real! 😱",
+    "Watch out for that hole! And... down they go! 🕳️",
+    "Who will claim the ultimate victory tonight? 🏆",
+    "The crowd is going absolutely wild! 📣",
+    "A legendary battle of gravity and choices! ✨",
+    "Look at that speed! They are slicing through the air! ⚡",
+    "An absolute masterclass in vertical sliding! 📉",
+    "Ouch! Bounced right off the edge! That's gotta hurt! 🤕",
+    "The leader is dropping like a stone! 💎",
+    "Nobody can predict where they will fall next! 🌀",
+    "Hold onto your seats, folks! The drop is getting chaotic! 🎢",
+    "Is it luck? Is it fate? No, it's physics! 🧬",
+    "BOMBSHELL! A sudden bounce changes everything! 💣",
+    "They are fighting for every pixel of space! 👾",
+    "CRASH! Direct impact pushes the contender into a hole! 🕳️"
+];
+
+let commentatorInterval = null;
+
+function startCommentator() {
+    const ticker = document.getElementById('commentator-ticker');
+    if (!ticker) return;
+
+    ticker.textContent = "THE RACE HAS STARTED! GET READY TO DROP! ⚡";
+    ticker.classList.remove('animate-marquee');
+    void ticker.offsetWidth; // Trigger reflow to restart CSS animation
+    ticker.classList.add('animate-marquee');
+
+    if (commentatorInterval) clearInterval(commentatorInterval);
+
+    commentatorInterval = setInterval(() => {
+        if (raceFinished) {
+            clearInterval(commentatorInterval);
+            return;
+        }
+        const phrase = ANNOUNCER_PHRASES[Math.floor(Math.random() * ANNOUNCER_PHRASES.length)];
+        
+        ticker.classList.remove('animate-marquee');
+        ticker.textContent = phrase;
+        void ticker.offsetWidth; // Trigger reflow
+        ticker.classList.add('animate-marquee');
+    }, 4500);
+}
+
+function stopCommentator(winnerName = "") {
+    if (commentatorInterval) clearInterval(commentatorInterval);
+    const ticker = document.getElementById('commentator-ticker');
+    if (ticker) {
+        ticker.classList.remove('animate-marquee');
+        ticker.textContent = winnerName ? `🏆 WE HAVE A WINNER: ${winnerName.toUpperCase()}! CELEBRATION TIME! 🎉` : "The race has finished!";
+    }
+}
+
 // --- VIEW MANAGEMENT ---
 function switchView(view) {
     [viewSetup, viewRace, viewWinner].forEach(v => v.classList.remove('active'));
@@ -54,26 +114,36 @@ function switchView(view) {
 // --- SETUP SCREEN LOGIC ---
 let choiceCounter = 1;
 
+function reindexRows() {
+    const rows = choicesList.querySelectorAll('.choice-row');
+    rows.forEach((row, i) => {
+        const badge = row.querySelector('.choice-badge');
+        if (badge) {
+            badge.textContent = `#${String(i + 1).padStart(2, '0')}`;
+            badge.style.transform = `rotate(${(i % 2 === 0 ? -4 : 4)}deg)`;
+        }
+    });
+    choiceCounter = rows.length + 1;
+}
+
 function createChoiceRow(initialValue = "") {
     const row = document.createElement('div');
-    row.className = "bg-[#ffffff] rounded-2xl p-1 border-2.5 border-[#2f2d29] shadow-[3px_3px_0px_#2f2d29] focus-within:shadow-[5px_5px_0px_#2f2d29] focus-within:translate-x-[-2px] focus-within:translate-y-[-2px] transition-kawaii choice-row relative group";
+    row.className = "relative group choice-row mt-4";
     const n = choiceCounter++;
+    const rot = (Math.random() * 8 - 4).toFixed(1);
 
     row.innerHTML = `
-        <div class="relative flex items-center justify-between">
-            <div class="relative flex-grow">
-                <label class="absolute left-4 top-3 text-[10px] font-extrabold uppercase tracking-widest text-[#615e58]">Contender ${String(n).padStart(2, '0')}</label>
-                <input class="w-full bg-transparent border-none pt-8 pb-3 px-4 text-[#2f2d29] focus:ring-0 placeholder:text-[#2f2d29]/30 headline-font text-lg font-bold choice-input outline-none" placeholder="Enter option..." type="text" value="${initialValue}" />
-            </div>
-            <button class="remove-btn text-[#2f2d29] hover:text-[#ff8383] transition-colors p-4 mx-1">
-                <span class="material-symbols-outlined transition-transform active:scale-90">delete</span>
-            </button>
+        <div class="choice-badge absolute -left-3 -top-3 bg-on-surface text-surface px-3 py-1 font-label text-sm font-black rotate-[${rot}deg] z-10 rounded-lg border-2 border-on-surface">#${String(n).padStart(2, '0')}</div>
+        <div class="flex items-center gap-4">
+            <input class="w-full px-8 py-5 rounded-full border-4 border-on-surface bg-[#ffffff] font-bold text-lg text-on-surface placeholder:text-on-surface-variant/40 shadow-[6px_6px_0px_0px_rgba(28,27,27,1)] focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all choice-input" placeholder="Enter contender name..." type="text" value="${initialValue}"/>
+            <button class="remove-btn material-symbols-outlined text-error text-3xl p-2 hover:scale-125 transition-transform flex-shrink-0">delete</button>
         </div>
     `;
 
     row.querySelector('.remove-btn').addEventListener('click', () => {
         if (choicesList.children.length > 2) {
             row.remove();
+            reindexRows();
         } else {
             showError("Minimum 2 choices required.");
         }
@@ -157,15 +227,15 @@ class Floor {
             ctx.fillRect(0, this.y, canvasWidth, Math.max(20, FLOOR_THICKNESS * 3));
             
             // Draw top border
-            ctx.fillStyle = "#2f2d29";
+            ctx.fillStyle = "#1c1b1b";
             ctx.fillRect(0, this.y, canvasWidth, 2.5);
             
             // Draw bottom border
             ctx.fillRect(0, this.y + Math.max(20, FLOOR_THICKNESS * 3) - 2.5, canvasWidth, 2.5);
 
             // Draw text
-            ctx.fillStyle = "#2f2d29";
-            ctx.font = "bold 12px 'Fredoka'";
+            ctx.fillStyle = "#1c1b1b";
+            ctx.font = "bold 12px 'Bricolage Grotesque'";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.fillText("🏁 FINISH ZONE 🏁", canvasWidth / 2, this.y + Math.max(20, FLOOR_THICKNESS * 3) / 2 + 1);
@@ -176,7 +246,7 @@ class Floor {
         let startX = 0;
         let sortedHoles = [...this.holes].sort((a, b) => a.x - b.x);
 
-        ctx.strokeStyle = "#2f2d29";
+        ctx.strokeStyle = "#1c1b1b";
         ctx.lineWidth = thickness;
         ctx.lineCap = "round";
 
@@ -354,13 +424,13 @@ class Dot {
         
         // Draw the dark border (Neo-Brutalism sticker look)
         ctx.lineWidth = 2.5;
-        ctx.strokeStyle = "#2f2d29";
+        ctx.strokeStyle = "#1c1b1b";
         ctx.stroke();
         ctx.closePath();
 
-        // Draw small initial inside using Fredoka font
-        ctx.fillStyle = "#2f2d29";
-        ctx.font = "bold 9px 'Fredoka'";
+        // Draw small initial inside using Bricolage Grotesque font
+        ctx.fillStyle = "#1c1b1b";
+        ctx.font = "bold 9px 'Bricolage Grotesque'";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         let initial = this.option.name.substring(0, 1).toUpperCase();
@@ -414,6 +484,8 @@ function startRace() {
 
     // Hide 'back to results' button during the race if it was open
     btnBackWinner.classList.add('hidden');
+
+    startCommentator();
 
     if (animFrame) cancelAnimationFrame(animFrame);
     animFrame = requestAnimationFrame(gameLoop);
@@ -500,17 +572,17 @@ function renderLiveStats() {
         pct = Math.min(100, Math.max(0, pct));
 
         const card = document.createElement('div');
-        card.className = "bg-[#ffffff] p-2 rounded-xl border-2 border-[#2f2d29] shadow-[2px_2px_0px_#2f2d29] relative overflow-hidden transition-all duration-300";
+        card.className = "bg-[#ffffff] p-3 rounded-2xl border-4 border-on-surface shadow-[4px_4px_0px_0px_rgba(28,27,27,1)] relative overflow-hidden transition-all duration-300";
 
         card.innerHTML = `
             <div class="flex justify-between items-center mb-1.5">
-                <span class="headline-font font-bold text-xs text-[#2f2d29] uppercase w-full truncate">
-                    <span style="color: ${d.option.color}; -webkit-text-stroke: 0.5px #2f2d29;" class="mr-1 font-black">${index + 1}.</span> ${d.option.name}
+                <span class="font-headline font-black text-sm text-on-surface uppercase w-full truncate">
+                    <span style="color: ${d.option.color}; -webkit-text-stroke: 0.5px #1c1b1b;" class="mr-1 font-black">${index + 1}.</span> ${d.option.name}
                 </span>
-                <span class="text-[9px] font-black px-1.5 py-0.5 rounded-lg border border-[#2f2d29] shadow-[1px_1px_0px_#2f2d29] shrink-0" style="background-color: ${d.option.color}">${pct}%</span>
+                <span class="text-[10px] font-black px-1.5 py-0.5 rounded-lg border-2 border-on-surface shadow-[2px_2px_0px_0px_rgba(28,27,27,1)] shrink-0" style="background-color: ${d.option.color}">${pct}%</span>
             </div>
-            <div class="w-full bg-[#faf7f2] h-2.5 rounded-full border border-[#2f2d29] overflow-hidden">
-                <div class="h-full rounded-full transition-all duration-300 border-r border-[#2f2d29]" style="width: ${pct}%; background-color: ${d.option.color};"></div>
+            <div class="w-full bg-[#f6f3f2] h-4 rounded-full border-2 border-on-surface overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-300 border-r-2 border-on-surface" style="width: ${pct}%; background-color: ${d.option.color};"></div>
             </div>
         `;
         liveStatsList.appendChild(card);
@@ -530,23 +602,33 @@ function renderFinalStats() {
         let pct = Math.floor((d.y / maxDropY) * 100);
         pct = Math.min(100, Math.max(0, pct));
 
-        let positionText = ["1st", "2nd", "3rd"][index] || `${index + 1}th`;
-        if (index === 0) positionText = "WINNER";
-
-        const card = document.createElement('div');
-        card.className = "bg-[#ffffff] p-4 rounded-2xl border-2.5 border-[#2f2d29] relative overflow-hidden flex items-center justify-between shadow-[3px_3px_0px_#2f2d29]";
+        let positionText = ["1", "2", "3"][index] || `${index + 1}`;
+        let bgClass = "bg-surface-container";
+        let placeBg = "#CD7F32"; // bronze
         if (index === 0) {
-            card.className += " bg-pastel-yellow shadow-[4px_4px_0px_#2f2d29]";
+            bgClass = "bg-primary-fixed";
+            placeBg = "#FFD700"; // gold
+        } else if (index === 1) {
+            bgClass = "bg-secondary-fixed";
+            placeBg = "#C0C0C0"; // silver
+        } else if (index === 2) {
+            bgClass = "bg-tertiary-fixed";
+            placeBg = "#CD7F32";
         }
 
+        const card = document.createElement('div');
+        card.className = `${bgClass} flex items-center gap-4 border-4 border-on-surface p-4 rounded-full shadow-[4px_4px_0px_0px_rgba(28,27,27,1)]`;
+
         card.innerHTML = `
-            <div class="flex items-center gap-4 overflow-hidden max-w-[70%]">
-                <span class="text-xs font-black uppercase w-16 shrink-0 py-0.5 px-2 rounded-lg border border-[#2f2d29] text-center shadow-[1px_1px_0px_#2f2d29]" style="background-color: ${d.option.color}">${positionText}</span>
-                <span class="headline-font font-bold text-lg text-[#2f2d29] truncate">${d.option.name}</span>
-            </div>
-            <div class="text-right">
-                <span class="text-[9px] text-[#615e58] font-bold uppercase tracking-wider block">Floor ${d.floorIndex + 1}</span>
-                <span class="text-xs font-black truncate uppercase block mt-0.5" style="color: ${d.option.color}; -webkit-text-stroke: 0.3px #2f2d29;">${pct}% Drop</span>
+            <div class="w-12 h-12 shrink-0 border-4 border-on-surface rounded-full flex items-center justify-center font-headline text-xl" style="background-color: ${placeBg}">${positionText}</div>
+            <div class="flex-1 min-w-0">
+                <div class="flex justify-between items-end mb-1">
+                    <span class="font-headline text-lg uppercase truncate text-on-surface pr-2">${d.option.name}</span>
+                    <span class="font-label text-xs font-black text-primary shrink-0">${d.floorIndex + 1} Floors (${pct}%)</span>
+                </div>
+                <div class="h-4 w-full bg-surface border-2 border-on-surface rounded-full overflow-hidden">
+                    <div class="h-full rounded-full" style="width: ${pct}%; background-color: ${d.option.color}"></div>
+                </div>
             </div>
         `;
         finalStatsList.appendChild(card);
@@ -556,9 +638,10 @@ function renderFinalStats() {
 // --- WINNER LOGIC ---
 
 function declareWinner(winningOption) {
-    winnerNameEl.textContent = winningOption.name;
+    winnerNameEl.textContent = winningOption.name + " 🏆";
     winnerNameEl.style.color = winningOption.color;
-    winnerNameEl.style.textShadow = `2px 2px 0px #2f2d29`;
+    winnerNameEl.style.textShadow = `4px 4px 0px #1c1b1b`;
+    stopCommentator(winningOption.name);
 
     // Render final stats
     renderFinalStats();

@@ -4,32 +4,46 @@ module.exports = {
   theme: {
       extend: {
           colors: {
-              "primary-container": "#ffdbe0", // pastel pink
-              "on-primary-container": "#2f2d29",
-              "primary": "#cbeee4", // pastel mint
-              "on-primary": "#2f2d29",
-              "secondary": "#cbe6f6", // pastel blue
-              "tertiary": "#fef0be", // pastel yellow
-              "error": "#ffb3b8", // soft red
-              "surface": "#ffffff",
-              "surface-container": "#faf7f2",
-              "surface-container-low": "#f5f0e6",
-              "surface-container-highest": "#ffffff",
-              "on-surface": "#2f2d29",
-              "on-surface-variant": "#615e58",
-              "outline-variant": "#2f2d29",
-              "background": "#faf7f2",
-              "on-background": "#2f2d29",
-              "line-dark": "#2f2d29",
-              "pastel-mint": "#cbeee4",
-              "pastel-pink": "#ffdbe0",
-              "pastel-blue": "#cbe6f6",
-              "pastel-yellow": "#fef0be"
+              "primary": "#a90097", // Neon Pink
+              "on-primary": "#ffffff",
+              "primary-container": "#d300bd",
+              "on-primary-container": "#fffbff",
+              "secondary": "#5400c3", // Electric Purple
+              "on-secondary": "#ffffff",
+              "secondary-container": "#7000ff",
+              "on-secondary-container": "#ddcdff",
+              "tertiary": "#00666d", // Cyan
+              "on-tertiary": "#ffffff",
+              "tertiary-container": "#00818a",
+              "on-tertiary-container": "#f5feff",
+              "error": "#ba1a1a",
+              "error-container": "#ffdad6",
+              "on-error-container": "#93000a",
+              "surface": "#fcf9f8",
+              "on-surface": "#1c1b1b",
+              "on-surface-variant": "#574050",
+              "outline": "#8a6f81",
+              "outline-variant": "#ddbed1",
+              "background": "#fcf9f8",
+              "on-background": "#1c1b1b",
+              "surface-dim": "#dcd9d9",
+              "surface-bright": "#fcf9f8",
+              "surface-container": "#f0eded",
+              "surface-container-low": "#f6f3f2",
+              "surface-container-high": "#eae7e7",
+              "surface-container-highest": "#e5e2e1",
+              "primary-fixed": "#ffd7f0",
+              "secondary-fixed": "#e9ddff",
+              "tertiary-fixed": "#7df4ff",
+              "on-tertiary-fixed": "#002022",
+              "on-primary-fixed": "#3a0033",
+              "on-secondary-fixed": "#23005b",
+              "line-dark": "#1c1b1b"
           },
           fontFamily: {
-              "headline": ["Fredoka", "sans-serif"],
-              "body": ["Nunito", "sans-serif"],
-              "label": ["Nunito", "sans-serif"]
+              "headline": ["Bricolage Grotesque", "sans-serif"],
+              "body": ["Plus Jakarta Sans", "sans-serif"],
+              "label": ["Space Grotesk", "sans-serif"]
           },
           borderWidth: {
               "3": "3px",

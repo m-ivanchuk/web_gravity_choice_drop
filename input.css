@@ -7,26 +7,15 @@
 }
 
 body {
-    font-family: 'Nunito', system-ui, -apple-system, sans-serif;
-    background-color: #faf7f2;
-    color: #2f2d29;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background-color: #fcf9f8;
+    color: #1c1b1b;
     position: relative;
     overflow-x: hidden;
 }
 
-/* Dot grid background texture */
-body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: radial-gradient(rgba(47, 45, 41, 0.05) 1.5px, transparent 1.5px);
-    background-size: 24px 24px;
-    pointer-events: none;
-    z-index: 0;
-}
-
 .headline-font {
-    font-family: 'Fredoka', sans-serif;
+    font-family: 'Bricolage Grotesque', sans-serif;
 }
 
 .view {
@@ -37,41 +26,66 @@ body::before {
     display: flex;
 }
 
-/* Pop flat 2D shadows (Neo-Brutalism style) */
-.shadow-flat {
-    box-shadow: 4px 4px 0px #2f2d29;
+/* Manga Editorial Styles */
+.manga-outline {
+    -webkit-text-stroke: 2px #1c1b1b;
+    paint-order: stroke fill;
 }
 
-.shadow-flat-hover {
-    box-shadow: 6px 6px 0px #2f2d29;
+.halftone-bg {
+    background-image: radial-gradient(#1c1b1b 10%, transparent 11%);
+    background-size: 12px 12px;
+    opacity: 0.05;
 }
 
-.shadow-flat-active {
-    box-shadow: 1px 1px 0px #2f2d29;
+.speed-lines {
+    background: repeating-conic-gradient(from 0deg, transparent 0deg 1deg, rgba(169, 0, 151, 0.05) 2deg 3deg);
+    mask-image: radial-gradient(circle, transparent 20%, black 100%);
 }
 
-/* Cute Floating animations */
-@keyframes floatSlow {
-    0% { transform: translateY(0) rotate(0deg); }
-    100% { transform: translateY(-8px) rotate(2deg); }
+.comic-shadow {
+    box-shadow: 8px 8px 0px 0px rgba(28, 27, 27, 1);
 }
 
-@keyframes cloudBounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-6px); }
+.comic-shadow-sm {
+    box-shadow: 4px 4px 0px 0px rgba(28, 27, 27, 1);
 }
 
-.kawaii-bounce {
-    animation: cloudBounce 4s ease-in-out infinite;
+/* Sticker floating animations */
+@keyframes floatSticker {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(-10px) rotate(2deg); }
 }
 
-.kawaii-float {
-    animation: floatSlow 6s ease-in-out infinite alternate;
+.floating-sticker {
+    animation: floatSticker 3s ease-in-out infinite;
+}
+
+/* Bounce-pop start button animation */
+@keyframes bounce-pop {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.animate-bounce-pop {
+    animation: bounce-pop 0.6s ease-in-out infinite;
+}
+
+/* Announcer Marquee text animation */
+@keyframes marquee {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+}
+
+.animate-marquee {
+    display: inline-block;
+    animation: marquee 16s linear infinite;
 }
 
 .transition-kawaii {
-    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
+
 
 /* Neo-Brutalism text stroke and shadow utilities */
 .text-stroke-brutal {
