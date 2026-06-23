@@ -59,14 +59,13 @@ const ANNOUNCER_PHRASES = [
     "TAKO KARATE executes a perfect gravity roll! 🐙",
     "Is that... a speed boost?! No, it's just gravity! 🚀",
     "UNBELIEVABLE! They are clashing on the platforms! ⚔️",
-    "KA-POW! A massive collision redirects the leader! 💥",
-    "Will they make it through the next gap? The tension is real! 😱",
-    "Watch out for that hole! And... down they go! 🕳️",
-    "Who will claim the ultimate victory tonight? 🏆",
-    "The crowd is going absolutely wild! 📣",
-    "A legendary battle of gravity and choices! ✨",
-    "Look at that speed! They are slicing through the air! ⚡",
-    "An absolute masterclass in vertical sliding! 📉",
+    "What a crazy drop! I've never seen anything like it! 😱",
+    "They are bouncing like crazy! Who will take the lead? 🚀",
+    "That was a tight squeeze! Unbelievable! 🤯",
+    "Gravity is showing no mercy today! ⚡",
+    "A brilliant maneuver! Or was it just luck?! 🎲",
+    "This is pure chaos! I love it! 🔥",
+    "The tension is thicker than a black hole! 🌌",
     "Ouch! Bounced right off the edge! That's gotta hurt! 🤕",
     "The leader is dropping like a stone! 💎",
     "Nobody can predict where they will fall next! 🌀",
@@ -77,71 +76,68 @@ const ANNOUNCER_PHRASES = [
     "CRASH! Direct impact pushes the contender into a hole! 🕳️"
 ];
 
-let commentatorInterval = null;
+const SETUP_PHRASES = [
+    "CHOICE DROP",
+    "LET GRAVITY CHOOSE",
+    "KAWAII CHAOS ARENA",
+    "CHOOSE YOUR CONTENDERS",
+    "RANDOMIZED MAZE DROP",
+    "DECIDE YOUR DESTINY",
+    "FAST & FUN"
+];
 
-function playNextTickerPhrase() {
-    const ticker = document.getElementById('commentator-ticker');
-    if (!ticker || raceFinished) return;
-
-    const phrase = ANNOUNCER_PHRASES[Math.floor(Math.random() * ANNOUNCER_PHRASES.length)];
-    ticker.textContent = phrase;
-    ticker.style.animationIterationCount = '1';
-
-    // Wait one frame to ensure layout is updated and offsetWidth is non-zero
-    requestAnimationFrame(() => {
-        const textWidth = ticker.offsetWidth || (ticker.textContent.length * 8);
-        const containerWidth = ticker.parentElement.offsetWidth || canvas.width || 500;
-        const speed = 180; // speed in pixels per second
-        const duration = (containerWidth + textWidth) / speed;
-
-        ticker.style.animationDuration = `${duration}s`;
-
-        // Restart CSS animation
-        ticker.classList.remove('animate-marquee');
-        void ticker.offsetWidth; // trigger reflow
-        ticker.classList.add('animate-marquee');
-    });
+function shuffleArray(array) {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
 }
 
-function handleTickerAnimationEnd() {
-    if (!raceFinished) {
-        playNextTickerPhrase();
-    }
+function setMarqueeContent(phrasesArray) {
+    const marquee = document.getElementById('footer-marquee');
+    if (!marquee) return;
+
+    const contents = marquee.querySelectorAll('.marquee-content');
+    
+    // Create HTML string with phrases and stars
+    const htmlString = phrasesArray.map(p => `<span class="whitespace-nowrap">${p}</span><span class="text-primary mx-4">★</span>`).join('');
+    
+    contents.forEach(el => {
+        el.innerHTML = htmlString;
+    });
+
+    // Wait one frame to ensure layout is updated before measuring width
+    requestAnimationFrame(() => {
+        const trueWidth = contents[0].scrollWidth;
+        const speed = 150; // pixels per second
+        const duration = Math.max(10, trueWidth / speed); // at least 10s
+
+        contents.forEach(el => {
+            el.style.animation = 'none';
+            void el.offsetWidth; // trigger reflow
+            el.style.animation = `scroll-left-continuous ${duration}s linear infinite`;
+        });
+    });
 }
 
 function startCommentator() {
-    const ticker = document.getElementById('commentator-ticker');
-    if (!ticker) return;
-
-    // Set up the first phrase
-    ticker.textContent = "THE RACE HAS STARTED! GET READY TO DROP! ⚡";
-    ticker.style.animationIterationCount = '1';
-    
-    // Wait one frame to ensure layout is updated and offsetWidth is non-zero
-    requestAnimationFrame(() => {
-        const textWidth = ticker.offsetWidth || (ticker.textContent.length * 8);
-        const containerWidth = ticker.parentElement.offsetWidth || canvas.width || 500;
-        const speed = 180;
-        const duration = (containerWidth + textWidth) / speed;
-        ticker.style.animationDuration = `${duration}s`;
-
-        ticker.classList.remove('animate-marquee');
-        void ticker.offsetWidth;
-        ticker.classList.add('animate-marquee');
-    });
-
-    // Listen for animationend to trigger next phrase
-    ticker.removeEventListener('animationend', handleTickerAnimationEnd);
-    ticker.addEventListener('animationend', handleTickerAnimationEnd);
+    const randomPhrases = shuffleArray(ANNOUNCER_PHRASES).slice(0, 10);
+    setMarqueeContent(randomPhrases);
 }
 
 function stopCommentator(winnerName = "") {
-    const ticker = document.getElementById('commentator-ticker');
-    if (ticker) {
-        ticker.removeEventListener('animationend', handleTickerAnimationEnd);
-        ticker.classList.remove('animate-marquee');
-        ticker.style.animationDuration = '';
-        ticker.textContent = winnerName ? `🏆 WE HAVE A WINNER: ${winnerName.toUpperCase()}! CELEBRATION TIME! 🎉` : "The race has finished!";
+    if (winnerName) {
+        setMarqueeContent([
+            `WE HAVE A WINNER! ${winnerName.toUpperCase()}! 🎉`,
+            "CELEBRATION TIME!",
+            `GRAVITY HAS CHOSEN ${winnerName.toUpperCase()}! 🏆`,
+            "WHAT A RACE!",
+            "PLAY AGAIN?"
+        ]);
+    } else {
+        setMarqueeContent(SETUP_PHRASES);
     }
 }
 
@@ -203,6 +199,7 @@ function initSetup() {
     choiceCounter = 1;
     createChoiceRow("");
     createChoiceRow("");
+    setMarqueeContent(SETUP_PHRASES);
     switchView(viewSetup);
 }
 
@@ -733,6 +730,7 @@ btnRaceAgain.addEventListener('click', () => {
 });
 
 btnBackSetup.addEventListener('click', () => {
+    setMarqueeContent(SETUP_PHRASES);
     switchView(viewSetup);
 });
 

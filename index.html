@@ -99,15 +99,7 @@
     <main id="view-race"
         class="view flex-grow flex-col items-center justify-center pt-28 pb-4 px-4 md:px-8 w-full z-10 overflow-hidden relative">
         
-        <!-- Announcer Ticker Bar -->
-        <div class="absolute top-2 left-6 right-6 z-20 bg-primary-fixed border-4 border-on-surface shadow-[4px_4px_0px_#1c1b1b] rounded-full py-2.5 px-6 overflow-hidden flex items-center">
-            <div class="shrink-0 bg-on-surface text-surface px-3 py-1 font-headline text-xs font-black uppercase rotate-[-2deg] rounded-lg mr-4">ANNOUNCER 📣</div>
-            <div class="w-full overflow-hidden relative">
-                <div id="commentator-ticker" class="whitespace-nowrap font-headline text-sm font-bold text-on-surface inline-block animate-marquee">
-                    Waiting for the contenders to drop...
-                </div>
-            </div>
-        </div>
+
 
         <div
             class="relative w-full h-full max-w-5xl bg-[#ffffff] rounded-[2.5rem] overflow-hidden border-8 border-on-surface shadow-[12px_12px_0px_0px_rgba(28,27,27,1)] flex justify-center">
@@ -195,25 +187,9 @@
     </dialog>
 
     <!-- Running Marquee Footer -->
-    <div class="marquee-banner">
-        <div class="marquee-content">
-            <span>★ CHOICE DROP ★</span>
-            <span>LET GRAVITY CHOOSE ★</span>
-            <span>KAWAII CHAOS ARENA ★</span>
-            <span>CHOOSE YOUR CONTENDERS ★</span>
-            <span>RANDOMIZED MAZE DROP ★</span>
-            <span>DECIDE YOUR DESTINY ★</span>
-            <span>FAST & FUN ★</span>
-        </div>
-        <div class="marquee-content" aria-hidden="true">
-            <span>★ CHOICE DROP ★</span>
-            <span>LET GRAVITY CHOOSE ★</span>
-            <span>KAWAII CHAOS ARENA ★</span>
-            <span>CHOOSE YOUR CONTENDERS ★</span>
-            <span>RANDOMIZED MAZE DROP ★</span>
-            <span>DECIDE YOUR DESTINY ★</span>
-            <span>FAST & FUN ★</span>
-        </div>
+    <div class="marquee-banner" id="footer-marquee">
+        <div class="marquee-content"></div>
+        <div class="marquee-content" aria-hidden="true"></div>
     </div>
 
     <script src="app.js"></script>
